@@ -15,6 +15,7 @@ The primary user taps visual cards. A caregiver configures vocabulary level and 
 - Avoid harsh or overly clinical labels when gentler wording works.
 - Avoid duplicate UI: selected-word pills already communicate the built phrase.
 - Caregiver settings should be available but not dominate the main board.
+- Caregiver settings can be protected with an optional local PIN.
 - iPad and Android tablet use are the main target surfaces.
 
 ## Current UX Decisions
@@ -44,7 +45,7 @@ Advanced-only cards use `minMode: 'advanced'` in the vocabulary tree.
 - `Custom`: uses caregiver-saved labels and uploaded images.
 - `Edit`: shows caregiver editing UI.
 
-Customizations are stored in browser `localStorage` using `taptotalker-card-customizations`. This means custom cards are local to the browser/device unless a future backend or export/import feature is added.
+Customizations are stored in browser `localStorage` using `taptotalker-card-customizations`. The optional caregiver PIN is stored locally using `taptotalker-caregiver-pin`. This means custom cards are local to the browser/device unless a future backend or export/import feature is added.
 
 ## Editing Model
 

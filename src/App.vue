@@ -19,6 +19,7 @@ import {
   Heart,
   Home,
   IceCreamBowl,
+  KeyRound,
   Laugh,
   MapPin,
   MessageCircle,
@@ -304,10 +305,16 @@ const boardMode = ref('default');
 const pendingBoardMode = ref(boardMode.value);
 const showCaregiverControls = ref(false);
 const settingsMessage = ref('');
+const caregiverPin = ref('');
+const pendingCaregiverPin = ref('');
+const pinEntry = ref('');
+const pinMessage = ref('');
+const showPinPrompt = ref(false);
 const cardCustomizations = ref({});
 const selectedEditGroupId = ref('home');
 
 const customizationStorageKey = 'taptotalker-card-customizations';
+const caregiverPinStorageKey = 'taptotalker-caregiver-pin';
 const boardModes = [
   { id: 'default', label: 'Default' },
   { id: 'custom', label: 'Custom' },
@@ -456,6 +463,9 @@ const activeBoardMode = computed(() => boardModes.find((mode) => mode.id === boa
 const canUseCustomCards = computed(() => boardMode.value === 'custom' || boardMode.value === 'edit');
 
 onMounted(() => {
+  caregiverPin.value = window.localStorage.getItem(caregiverPinStorageKey) || '';
+  pendingCaregiverPin.value = caregiverPin.value;
+
   const savedCustomizations = window.localStorage.getItem(customizationStorageKey);
   if (!savedCustomizations) return;
   try {
@@ -490,6 +500,36 @@ function resetFlow() {
   selectedPath.value = [];
 }
 
+function openCaregiverAccess() {
+  if (!caregiverPin.value) {
+    showCaregiverControls.value = !showCaregiverControls.value;
+    return;
+  }
+
+  pinEntry.value = '';
+  pinMessage.value = '';
+  showPinPrompt.value = true;
+  showCaregiverControls.value = false;
+}
+
+function unlockCaregiverSettings() {
+  if (pinEntry.value !== caregiverPin.value) {
+    pinMessage.value = 'PIN does not match.';
+    return;
+  }
+
+  pinEntry.value = '';
+  pinMessage.value = '';
+  showPinPrompt.value = false;
+  showCaregiverControls.value = true;
+}
+
+function cancelPinPrompt() {
+  pinEntry.value = '';
+  pinMessage.value = '';
+  showPinPrompt.value = false;
+}
+
 function optionsForMode(options, mode) {
   const availableOptions = options.filter((option) => {
     if (!option.minMode) return true;
@@ -512,7 +552,15 @@ function remainingStepCount(node) {
 function saveSettings() {
   vocabularyMode.value = pendingVocabularyMode.value;
   boardMode.value = pendingBoardMode.value;
-  settingsMessage.value = `${activeVocabularyMode.value.label} vocabulary and ${activeBoardMode.value.label.toLowerCase()} cards saved.`;
+  caregiverPin.value = pendingCaregiverPin.value.trim();
+
+  if (caregiverPin.value) {
+    window.localStorage.setItem(caregiverPinStorageKey, caregiverPin.value);
+  } else {
+    window.localStorage.removeItem(caregiverPinStorageKey);
+  }
+
+  settingsMessage.value = `${activeVocabularyMode.value.label} vocabulary, ${activeBoardMode.value.label.toLowerCase()} cards, and PIN settings saved.`;
   if (boardMode.value === 'edit') return;
   window.setTimeout(() => {
     showCaregiverControls.value = false;
@@ -659,7 +707,7 @@ const toneClasses = {
             class="inline-flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-cyan-200"
             aria-label="Caregiver settings"
             title="Caregiver settings"
-            @click="showCaregiverControls = !showCaregiverControls"
+            @click="openCaregiverAccess"
           >
             <Settings class="h-5 w-5" />
           </button>
@@ -694,9 +742,46 @@ const toneClasses = {
           </div>
         </div>
 
+        <div v-if="showPinPrompt" class="rounded-lg border border-slate-200 bg-white p-4 shadow-soft">
+          <div class="flex items-center gap-3">
+            <KeyRound class="h-6 w-6 text-slate-700" />
+            <p class="text-sm font-semibold text-slate-500">Caregiver PIN</p>
+          </div>
+          <div class="mt-3 grid gap-3 sm:grid-cols-[1fr_auto_auto] sm:items-end">
+            <label class="block">
+              <span class="text-sm font-bold text-slate-800">Enter PIN</span>
+              <input
+                v-model="pinEntry"
+                type="password"
+                inputmode="numeric"
+                autocomplete="off"
+                class="mt-2 min-h-12 w-full rounded-lg border border-slate-200 bg-white px-4 text-base font-semibold text-slate-900 shadow-sm focus:outline-none focus:ring-4 focus:ring-cyan-200"
+                @keyup.enter="unlockCaregiverSettings"
+              />
+            </label>
+            <button
+              type="button"
+              class="inline-flex min-h-12 items-center justify-center rounded-lg bg-slate-950 px-5 text-base font-bold text-white shadow-lg shadow-slate-300 transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-cyan-200"
+              @click="unlockCaregiverSettings"
+            >
+              Unlock
+            </button>
+            <button
+              type="button"
+              class="inline-flex min-h-12 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-base font-bold text-slate-800 shadow-sm transition hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-cyan-200"
+              @click="cancelPinPrompt"
+            >
+              Cancel
+            </button>
+          </div>
+          <p v-if="pinMessage" class="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-800">
+            {{ pinMessage }}
+          </p>
+        </div>
+
         <div v-if="showCaregiverControls" class="rounded-lg border border-slate-200 bg-white p-4 shadow-soft">
           <p class="text-sm font-semibold text-slate-500">Caregiver settings</p>
-          <div class="mt-3 grid gap-3 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
+          <div class="mt-3 grid gap-3 lg:grid-cols-[1fr_1fr_1fr_auto] lg:items-end">
             <label class="block">
               <span class="text-sm font-bold text-slate-800">Vocabulary mode</span>
               <select
@@ -727,6 +812,17 @@ const toneClasses = {
                 </option>
               </select>
             </label>
+            <label class="block">
+              <span class="text-sm font-bold text-slate-800">Settings PIN</span>
+              <input
+                v-model="pendingCaregiverPin"
+                type="password"
+                inputmode="numeric"
+                autocomplete="new-password"
+                placeholder="Optional"
+                class="mt-2 min-h-12 w-full rounded-lg border border-slate-200 bg-white px-4 text-base font-semibold text-slate-900 shadow-sm focus:outline-none focus:ring-4 focus:ring-cyan-200"
+              />
+            </label>
             <button
               type="button"
               class="inline-flex min-h-12 items-center justify-center rounded-lg bg-slate-950 px-5 text-base font-bold text-white shadow-lg shadow-slate-300 transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-cyan-200"
@@ -736,7 +832,7 @@ const toneClasses = {
             </button>
           </div>
           <p class="mt-3 text-sm leading-relaxed text-slate-500">
-            Current modes: {{ activeVocabularyMode.label }} vocabulary, {{ activeBoardMode.label }} cards. Edit mode lets caregivers rename cards and upload custom images.
+            Current modes: {{ activeVocabularyMode.label }} vocabulary, {{ activeBoardMode.label }} cards. Add a PIN to protect caregiver settings; clear it and save to remove PIN access.
           </p>
           <div
             v-if="pendingBoardMode === 'edit' || boardMode === 'edit'"

@@ -10,6 +10,7 @@ TapToTalker is a Vue and Tailwind communication-board prototype for nonverbal us
 - Supports 4-step detail flows in Advanced vocabulary mode
 - Uses large emoji/image cues plus text labels
 - Includes caregiver settings for vocabulary level and card customization
+- Supports an optional caregiver PIN for settings access
 - Supports custom card labels and uploaded images stored locally on the device
 - Includes PWA metadata for iPad and Android install-style use
 
@@ -52,6 +53,10 @@ npm run preview
 - `Default`: built-in labels and emoji cues
 - `Custom`: caregiver-saved custom labels/images
 - `Edit`: caregiver can edit cards and save them as custom
+
+## Caregiver PIN
+
+A caregiver can set an optional PIN in settings. Once saved, tapping the gear asks for the PIN before opening caregiver settings. Clearing the PIN field and saving removes PIN protection on that device.
 
 Custom card data is stored in browser `localStorage` under:
 
