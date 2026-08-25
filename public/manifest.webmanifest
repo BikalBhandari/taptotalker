@@ -1,0 +1,12 @@
+{
+  "name": "TapToTalker",
+  "short_name": "TapToTalker",
+  "description": "A touch-first communication board for building short spoken phrases.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f5f7fb",
+  "theme_color": "#f5f7fb",
+  "categories": ["accessibility", "education", "health"]
+}
