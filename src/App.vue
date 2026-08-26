@@ -670,7 +670,6 @@ const toneClasses = {
       <header class="flex flex-col gap-4 border-b border-slate-200/80 pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">TapToTalker</p>
-          <h1 class="mt-1 text-3xl font-bold text-slate-950 sm:text-4xl">Communication board</h1>
         </div>
         <div class="flex items-center gap-2">
           <button
